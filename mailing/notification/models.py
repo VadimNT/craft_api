@@ -64,10 +64,22 @@ class Client(models.Model):
             )
         )
     )
-    code = models.ForeignKey(
-        CodeMobileOperator,
-        related_name='codes',
-        on_delete=models.SET_NULL,
+    tag = models.CharField(
+        verbose_name='Тэг оператора',
+        max_length=LEN_TAG_NAME_MOBILE_OPERATOR,
+    )
+    code = models.SmallIntegerField(
+        verbose_name='Код оператора',
+        validators=(
+            MinValueValidator(
+                LEN_CODE,
+                'Размер кода оператора должен быть 3 символа.'
+            ),
+            MaxValueValidator(
+                LEN_CODE,
+                'Размер кода оператора должен быть 3 символа.'
+            )
+        )
     )
     utc = models.CharField(
         validators=(
@@ -81,6 +93,14 @@ class Client(models.Model):
             ),
         )
     )
+
+    class Meta:
+        verbose_name = 'Клиент'
+        verbose_name_plural = 'Клиенты'
+        ordering = ('phone',)
+
+    def __str__(self):
+        return self.phone
 
 
 class Message(models.Model):
@@ -102,3 +122,11 @@ class Message(models.Model):
         related_name='clients',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        verbose_name = 'Сообщение'
+        verbose_name_plural = 'Сообщения'
+        ordering = ('datetime_create',)
+
+    def __str__(self):
+        return self.mailing.mailing.text
