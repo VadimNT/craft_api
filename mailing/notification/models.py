@@ -2,15 +2,29 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from craft_api.mailing.mailing.settings import (MAX_LEN_MSG, LEN_PHONE,
-                                                MIN_HOUR_UTC, MAX_HOUR_UTC, )
+                                                MIN_HOUR_UTC, MAX_HOUR_UTC,
+                                                LEN_TAG_NAME_MOBILE_OPERATOR,
+                                                LEN_CODE, )
 
 
 class CodeMobileOperator(models.Model):
     tag = models.CharField(
-        verbose_name='',
-        max_length=10,
+        verbose_name='Тэг оператора',
+        max_length=LEN_TAG_NAME_MOBILE_OPERATOR,
     )
-    code = models.SmallIntegerField()
+    code = models.SmallIntegerField(
+        verbose_name='Код оператора',
+        validators=(
+            MinValueValidator(
+                LEN_CODE,
+                'Размер кода оператора должен быть 3 символа.'
+            ),
+            MaxValueValidator(
+                LEN_CODE,
+                'Размер кода оператора должен быть 3 символа.'
+            )
+        )
+    )
 
 
 class Mailing(models.Model):
