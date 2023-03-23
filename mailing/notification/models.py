@@ -1,10 +1,10 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from craft_api.mailing.mailing.settings import (MAX_LEN_MSG, LEN_PHONE,
-                                                MIN_HOUR_UTC, MAX_HOUR_UTC,
-                                                LEN_TAG_NAME_MOBILE_OPERATOR,
-                                                LEN_CODE, )
+from mailing.settings import (MAX_LEN_MSG, LEN_PHONE,
+                              MIN_HOUR_UTC, MAX_HOUR_UTC,
+                              LEN_TAG_NAME_MOBILE_OPERATOR,
+                              LEN_CODE, )
 
 
 class CodeMobileOperator(models.Model):
@@ -25,6 +25,15 @@ class CodeMobileOperator(models.Model):
             )
         )
     )
+
+    class Meta:
+        verbose_name = 'Код оператора'
+        verbose_name_plural = 'Коды операторов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['code', 'tag'],
+                name='unique code')
+        ]
 
 
 class Mailing(models.Model):
@@ -55,33 +64,22 @@ class Mailing(models.Model):
 
 
 class Client(models.Model):
-    phone = models.SmallIntegerField(
+    phone = models.IntegerField(
         verbose_name='Телефон клиента',
         validators=(
             MinValueValidator(
                 LEN_PHONE,
                 'Номер телефона должно содержать 10 символов.'
-            )
-        )
-    )
-    tag = models.CharField(
-        verbose_name='Тэг оператора',
-        max_length=LEN_TAG_NAME_MOBILE_OPERATOR,
-    )
-    code = models.SmallIntegerField(
-        verbose_name='Код оператора',
-        validators=(
-            MinValueValidator(
-                LEN_CODE,
-                'Размер кода оператора должен быть 3 символа.'
             ),
-            MaxValueValidator(
-                LEN_CODE,
-                'Размер кода оператора должен быть 3 символа.'
-            )
         )
     )
-    utc = models.CharField(
+    code_mobile_operator = models.ForeignKey(
+        CodeMobileOperator,
+        verbose_name='Фильтр операторов',
+        related_name='codes',
+        on_delete=models.SET_NULL,
+    )
+    utc = models.IntegerField(
         validators=(
             MinValueValidator(
                 MIN_HOUR_UTC,
@@ -116,11 +114,15 @@ class Message(models.Model):
         Mailing,
         related_name='mailing',
         on_delete=models.CASCADE,
+        blank=True,
+        null=True,
     )
     client = models.ForeignKey(
         Client,
         related_name='clients',
         on_delete=models.CASCADE,
+        blank=True,
+        null=True,
     )
 
     class Meta:
